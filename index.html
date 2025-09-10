@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tommy Podcast | English Every Day</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Montserrat:wght@400;700;900&amp;family=Roboto:wght@400;700&amp;family=Merriweather&amp;family=Open+Sans&amp;display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            padding-bottom: 120px;
+        }
+        
+        /* ===== BARRA FLUTUANTE ===== */
+        #floating-editor-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 9999px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 16px rgba(0, 0, 0, 0.08);
+            z-index: 50;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #floating-editor-bar:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* ===== BOTÕES EMOJI ===== */
+        .emoji-btn {
+            border: none;
+            background: rgba(248, 250, 252, 0.8);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .emoji-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .emoji-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* ===== SEPARADOR ===== */
+        .separator {
+            width: 1px;
+            height: 32px;
+            background: linear-gradient(to bottom, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+            margin: 0 6px;
+        }
+        
+        /* ===== BOTÕES DE AÇÃO ===== */
+        .action-btn {
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 0 20px;
+            height: 48px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* ===== SUBMENU DE FERRAMENTAS ===== */
+        .submenu-container {
+            position: relative; /* Essencial para o posicionamento do submenu */
+            display: flex;
+        }
+
+        .submenu-panel {
+            display: none; /* Escondido por padrão */
+            position: absolute;
+            bottom: calc(100% + 12px); /* Aparece 12px acima do botão pai */
+            left: 50%;
+            transform: translateX(-50%);
+            
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 200px; /* Largura do painel */
+            z-index: 55;
+        }
+
+        .submenu-panel.active {
+            display: flex; /* Mostra o painel quando a classe 'active' for adicionada */
+        }
+
+        .submenu-btn {
+            border: none;
+            background: rgba(248, 250, 252, 0.8);
+            color: #1e293b;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .submenu-btn:hover {
+            background: #e2e8f0;
+            transform: translateX(2px);
+        }
+
+        /* ===== PAINÉIS FLUTUANTES ===== */
+        #editor-panels-wrapper {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 700px;
+            z-index: 45;
+        }
+        
+        .editor-panel {
+            display: none;
+            max-height: 75vh;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .editor-panel.active {
+            display: block;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .editor-panel h3 {
+            margin: 0 0 24px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .field-group {
+            margin-bottom: 24px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .field-group:hover {
+            border-color: #cbd5e1;
+            background: rgba(248, 250, 252, 0.8);
+        }
+        
+        .field-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+        
+        .field-group input,
+        .field-group select,
+        .field-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .field-group input:focus,
+        .field-group select:focus,
+        .field-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .field-group input[type="color"] {
+            height: 48px;
+            padding: 4px;
+            cursor: pointer;
+        }
+        
+        .field-group input[type="range"] {
+            padding: 0;
+            height: 6px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 3px;
+        }
+        
+        .field-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .flex-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .flex-group > div {
+            flex: 1;
+        }
+        
+        /* ===== RADIO BUTTONS PARA MODELOS ===== */
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .radio-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .radio-option:has(input[type="radio"]:checked) {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        /* ===== PREVIEW CONTAINER ===== */
+        #preview-container {
+            min-height: 100vh;
+            background: white;
+        }
+        
+        /* ===== MENSAGEM DE STATUS ===== */
+        #message-area {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+            min-height: 24px;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        #message-area.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        #message-area.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        #message-area.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* ===== ESTILOS DO SITE ===== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .site-section {
+            padding: 60px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 2rem;
+            justify-items: center; /* <-- ADICIONE ESTA LINHA MÁGICA */
+            justify-content: center; /* Centraliza o BLOCO DE COLUNAS no container (a solução!) */
+        }
+        
+        @media (min-width: 768px) {
+            .md-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (min-width: 1024px) {
+            .lg-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        }
+        
+        /* Navbar */
+        #navbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        #navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: none;
+            padding: 0rem 2.188rem; /* <-- ADICIONE ESTA LINHA MÁGICA AQUI */
+        }
+        
+        #navbar-logo-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        #channel-logo {
+           width: 4.50rem;  /* Aumentado de 48px para 68.8px */
+           height: 4.50rem; /* Aumentado de 48px para 68.8px */
+           border-radius: 50%;
+           
+        }
+        
+        #channel-name {
+            font-size: 1.464rem; /* Aumentado para 26px */
+            font-weight: bold;
+        }
+        
+        #nav-links {
+            display: none;
+            gap: 1.5rem;
+        }
+        
+        #nav-links a {
+            font-size: 1.175rem; /* Equivalente a 22px, um bom tamanho para links */
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s ease-out; /* <-- ADICIONE ESTA LINHA */
+        }
+        
+        #nav-links a:hover {
+           transform: translateY(-2px);    /* <-- ADICIONE ESTA LINHA MÁGICA */
+        }
+        
+        #mobile-menu-btn {
+            display: block;
+        }
+        
+        @media (min-width: 768px) {
+            #nav-links { display: flex; }
+            #mobile-menu-btn { display: none; }
+        }
+        
+        /* Hero */
+        #hero h1, #hero p {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #hero-cta-btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        #hero-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Cards */
+        .podcast-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .podcast-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        .podcast-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+        
+        .podcast-card-content {
+            padding: 1.25rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .podcast-card-content h3 {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .podcast-card-content p {
+            font-size: 0.9rem;
+            color: #4A5568;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+        
+        .podcast-card-link {
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        
+        .podcast-card-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* ===== MODELOS DE CARDS PDF ===== */
+        
+        /* Modelo Padrão */
+        .pdf-card-buttons {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .pdf-card-buttons a {
+            display: block;
+            padding: 0.75rem;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .pdf-card-buttons a:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Modelo 1 - Com caixa interna cinza */
+        .inner-content-box {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+        
+        /* Modelo 2 - Layout diferenciado */
+        .pdf-card-modelo2 {
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .pdf-card-modelo2 img {
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pdf-card-modelo2 .podcast-card-content {
+            padding: 0;
+        }
+        
+        .pdf-card-modelo2 h3 {
+            font-size: 1.25rem;
+        }
+        
+        .pdf-card-modelo2 p {
+            margin-bottom: 1rem;
+        }
+        
+        /* PDF Items */
+        .pdf-item {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        
+        .pdf-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .remove-pdf-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .remove-pdf-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        /* Botões */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Formulário de contato elegante */
+        #contact form input,
+        #contact form textarea {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        #contact form input:focus,
+        #contact form textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        #contact form ::placeholder {
+            color: #a0aec0;
+        }
+        
+        #contact-submit-btn {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            margin-top: 1rem;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        #contact-submit-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.45);
+        }
+        
+        /* Responsivo */
+        @media (max-width: 768px) {
+            #floating-editor-bar {
+                padding: 8px;
+                gap: 6px;
+            }
+            
+            .emoji-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+            
+            .action-btn {
+                padding: 0 16px;
+                height: 44px;
+                font-size: 13px;
+            }
+            
+            .editor-panel {
+                width: 98%;
+                padding: 20px;
+                max-height: 80vh;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="preview-container">
+        <nav id="navbar" class="site-section" style="background: linear-gradient(142deg, rgb(23, 44, 64), rgb(30, 58, 136)); padding: 16px 0px;">
+            <div class="container">
+                <a id="navbar-logo-link" href="#" style="color: white;">
+                    <img id="channel-logo" src="https://yt3.ggpht.com/CDpyWg6-WzYXkttzgthLP3umyvT1pBGJg9pn9_yVS8yIFxqPUsbfmuYdg2wEIVI94IgwJOMulA=s88-c-k-c0x00ffffff-no-rj" alt="Logo">
+                    <span id="channel-name" style="color: rgb(255, 254, 254); font-family: roboto, sans-serif;">Tommy Podcast | English Every Day</span>
+                </a>
+                <div id="nav-links" style="color: white;">
+                    <a href="#episodes" style="color: rgb(255, 254, 254); font-family: roboto, sans-serif;">Episódios</a>
+                    <a href="#pdf-download" style="color: rgb(255, 254, 254); font-family: roboto, sans-serif;">PDF</a>
+                    <a href="#about" style="color: rgb(255, 254, 254); font-family: roboto, sans-serif;">Sobre</a>
+                    <a href="#contact" style="color: rgb(255, 254, 254); font-family: roboto, sans-serif;">Contato</a>
+                </div>
+                <button id="mobile-menu-btn" style="color: white;">☰</button>
+            </div>
+        </nav>
+        
+        <header id="hero" class="site-section text-center" style="background: linear-gradient(181deg, rgb(252, 254, 255), rgb(250, 253, 255)); padding: 30px 0px 74px;">
+            <div class="container" style="max-width: 700px;">
+                <h1 id="hero-title" style="font-size: 3rem; font-weight: 900; margin-bottom: 1rem; color: rgb(30, 41, 59); font-family: roboto, sans-serif;">Aprenda Inglês de Verdade com o Tommy Podcast</h1>
+                <p id="hero-description" style="font-size: 1.2rem; margin-bottom: 2rem; color: rgb(51, 65, 85); font-family: inter, sans-serif;">Imagina treinar inglês todos os dias com um método comprovado: o famoso shadowing. Aqui, você escuta histórias reais, aprende palavras úteis e ganha confiança para se expressar sem medo. Cada episódio vem com transcrição em PDF, guia de vocabulário e exercícios rápidos para transformar prática em resultado.</p>
+                <button id="hero-cta-btn" style="background-color: rgb(219, 0, 0); color: rgb(254, 255, 255); border-radius: 25px;">Baixar PDF</button>
+            </div>
+        </header>
+        
+        <section id="episodes" class="site-section" style="background: linear-gradient(rgb(30, 58, 138), rgb(30, 64, 175)); padding: 30px 0px 64px;">
+            <div class="container text-center">
+                <h2 id="episodes-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 2.5rem; color: rgb(251, 253, 255); font-family: roboto, sans-serif;">Episódios Recentes</h2>
+                <div id="episode-cards-container" class="grid lg-grid-cols-4 md-grid-cols-2"><div class="podcast-card" data-video-id="5oN6Ih5YhZg" style="height: 440px; width: 292px"><a href="https://www.youtube.com/watch?v=5oN6Ih5YhZg" target="_blank"><img src="https://i.ytimg.com/vi/5oN6Ih5YhZg/hqdefault.jpg" alt="The Secret Strategy to Becoming Fluent in English Without a Course"></a><div class="podcast-card-content"><h3 style="color: #1a202c;">The Secret Strategy to Becoming Fluent in English Without a Course</h3><p>Welcome to Tommy Podcast – Learn English with Real Stories! In today's episode, you'll uncover the s...</p><a href="https://www.youtube.com/watch?v=5oN6Ih5YhZg" target="_blank" class="podcast-card-link" style="color: #044bab;">Ouvir agora →</a></div></div><div class="podcast-card" data-video-id="SlM3R_TIruY" style="height: 440px; width: 292px"><a href="https://www.youtube.com/watch?v=SlM3R_TIruY" target="_blank"><img src="https://i.ytimg.com/vi/SlM3R_TIruY/hqdefault.jpg" alt="Practice English – Super Powerful Technique Called Shadowing"></a><div class="podcast-card-content"><h3 style="color: #1a202c;">Practice English – Super Powerful Technique Called Shadowing</h3><p>Welcome to Tommy Podcast – Learn English with Real Stories! In today's episode, you'll discover the ...</p><a href="https://www.youtube.com/watch?v=SlM3R_TIruY" target="_blank" class="podcast-card-link" style="color: #044bab;">Ouvir agora →</a></div></div><div class="podcast-card" data-video-id="4ZtWpxBCaeA" style="height: 440px; width: 292px"><a href="https://www.youtube.com/watch?v=4ZtWpxBCaeA" target="_blank"><img src="https://i.ytimg.com/vi/4ZtWpxBCaeA/hqdefault.jpg" alt="Practce Speak English – Break free from autopilot"></a><div class="podcast-card-content"><h3 style="color: #1a202c;">Practce Speak English – Break free from autopilot</h3><p>Welcome to Tommy Podcast – Learn English with Real Stories! In today's episode, we explore the power...</p><a href="https://www.youtube.com/watch?v=4ZtWpxBCaeA" target="_blank" class="podcast-card-link" style="color: #044bab;">Ouvir agora →</a></div></div><div class="podcast-card" data-video-id="kNbMOc6ATtY" style="height: 440px; width: 292px"><a href="https://www.youtube.com/watch?v=kNbMOc6ATtY" target="_blank"><img src="https://i.ytimg.com/vi/kNbMOc6ATtY/hqdefault.jpg" alt="Practce Speak English – Cannabis or weed Let’s make it clear"></a><div class="podcast-card-content"><h3 style="color: #1a202c;">Practce Speak English – Cannabis or weed Let’s make it clear</h3><p>Welcome to Tommy Podcast – Learn English with Real Stories! In today's episode, we dive into the wor...</p><a href="https://www.youtube.com/watch?v=kNbMOc6ATtY" target="_blank" class="podcast-card-link" style="color: #044bab;">Ouvir agora →</a></div></div></div>
+                <a href="https://www.youtube.com/channel/UCLkhVHjGaunVde5YgvJvhRA" id="episodes-view-all-btn" class="btn btn-primary" style="margin-top: 64px; background-color: rgb(219, 0, 0); color: rgb(255, 255, 255); border-radius: 25px;">Ver todos os episódios →</a>
+            </div>
+        </section>
+        
+        <section id="pdf-download" class="site-section" style="background: linear-gradient(rgb(243, 244, 246), rgb(243, 244, 246)); padding: 64px 0px;">
+            <div class="container text-center">
+                <h2 id="pdf-download-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 2.5rem; color: rgb(23, 45, 67); font-family: roboto, sans-serif;">Material de Apoio para Download</h2>
+                <div id="pdf-cards-container" class="grid lg-grid-cols-4 md-grid-cols-2"><div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><p>Nenhum material disponível no momento.</p></div></div>
+            </div>
+        </section>
+        
+        <section id="about" class="site-section" style="background: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)); padding: 64px 0px;">
+            <div class="container">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2.5rem;">
+                    <div style="flex: 1;">
+                        <img id="about-image" src="https://wallpapers.com/images/featured-full/imagens-incriveis-k287z98ruunquo28.jpg" alt="Sobre" style="width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    </div>
+                    <div style="flex: 1; text-align: center; max-width: 600px;">
+                        <h2 id="about-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; color: rgb(23, 44, 67); font-family: roboto, sans-serif;">Sobre o Tommy Podcast</h2>
+                        <div id="about-description" style="line-height: 1.7; color: rgb(71, 85, 118); font-size: 1.1rem; font-family: inter, sans-serif;"><p>O Tommy Podcast é mais que um podcast, é a sua dose diária de inglês prático. Acreditamos que o aprendizado deve ser leve e divertido. Com episódios curtos e diretos, o Tommy te ajuda a construir confiança e a se comunicar fluentemente no dia a dia. Junte-se à nossa comunidade e transforme o seu inglês, um episódio de cada vez!</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="contact" class="site-section" style="background: linear-gradient(rgb(242, 243, 245), rgb(243, 244, 246)); padding: 64px 0px;">
+            <div class="container" style="max-width: 600px; text-align: center;">
+                <h2 id="contact-title" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; color: rgb(23, 44, 67); font-family: inter, sans-serif;">Fale com o Tommy</h2>
+                <p id="contact-description" style="margin-bottom: 2rem; color: rgb(71, 85, 122); font-family: inter, sans-serif;">Envie sua mensagem para ser lida no inicio do episodio, faça uma pergunta, sugestão ou apenas diga "olá"!</p>
+                <form onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <input type="text" placeholder="Seu Nome" style="padding: 12px; border: none; border-radius: 8px; font-size: 16px;">
+                    <input type="email" placeholder="Seu Email" style="padding: 12px; border: none; border-radius: 8px; font-size: 16px;">
+                    <textarea placeholder="Sua Mensagem" rows="5" style="padding: 12px; border: none; border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+                    <button id="contact-submit-btn" type="submit" style="padding: 15px; background-color: rgb(29, 57, 132); color: rgb(254, 255, 255); border: none; border-radius: 50px; font-weight: bold; font-size: 16px; cursor: pointer;">
+                        Enviar Mensagem
+                    </button>
+                </form>
+            </div>
+        </section>
+        
+        <footer id="footer" class="site-section" style="background: linear-gradient(rgb(23, 45, 68), rgb(24, 45, 68)); padding: 40px 0px;">
+            <div class="container">
+                <p id="footer-text" class="text-center" style="color: rgb(255, 255, 255); margin: 0px; font-family: inter, sans-serif;">© 2025 Tommy Podcast. Todos os direitos reservados.</p>
+            </div>
+        </footer>
+    </div>
+
+    
+    
+    
+    
+    
+    
+
+<script>document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('data.json');
+            if (!res.ok) throw new Error('data.json not found');
+            const data = await res.json();
+            
+            document.title = data.channel.snippet.title;
+            document.getElementById('channel-name').textContent = data.channel.snippet.title;
+            document.getElementById('channel-logo').src = data.channel.snippet.thumbnails.default.url;
+            document.getElementById('episodes-view-all-btn').href = `https://www.youtube.com/channel/${data.channel.id}`;
+            
+            const applyStyles = (el, s) => {
+                if (!el) return;
+                for (const p in s) {
+                    if (s[p] !== undefined) el.style[p] = s[p];
+                }
+            };
+            
+            const applyGradient = (el, d) => {
+                if (el && d.startColor && d.endColor && d.angle) {
+                    el.style.background = `linear-gradient(${d.angle}deg, ${d.startColor}, ${d.endColor})`;
+                }
+            };
+            
+            Object.keys(data).forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    applyGradient(section, data[id]);
+                    if (data[id].paddingTop !== undefined && data[id].paddingBottom !== undefined) {
+                        section.style.paddingTop = `${data[id].paddingTop}px`;
+                        section.style.paddingBottom = `${data[id].paddingBottom}px`;
+                    }
+                }
+            });
+            
+            applyStyles(document.getElementById('channel-name'), {
+                color: data.navbar.channelNameColor,
+                fontFamily: `'${data.navbar.channelNameFontFamily}', sans-serif`
+            });
+            
+            document.querySelectorAll('#nav-links a').forEach(link => applyStyles(link, {
+                color: data.navbar.linksColor,
+                fontFamily: `'${data.navbar.linksFontFamily}', sans-serif`
+            }));
+            
+            const heroBtn = document.getElementById('hero-cta-btn');
+            document.getElementById('hero-title').textContent = data.hero.titleText;
+            applyStyles(document.getElementById('hero-title'), {
+                color: data.hero.titleColor,
+                fontFamily: `'${data.hero.titleFontFamily}', sans-serif`
+            });
+            
+            document.getElementById('hero-description').textContent = data.hero.descriptionText;
+            applyStyles(document.getElementById('hero-description'), {
+                color: data.hero.descriptionColor,
+                fontFamily: `'${data.hero.descriptionFontFamily}', sans-serif`
+            });
+            
+            heroBtn.textContent = data.hero.buttonText;
+            heroBtn.onclick = () => {
+                if (data.hero.buttonLink && data.hero.buttonLink.startsWith('#')) {
+                    document.querySelector(data.hero.buttonLink)?.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+            applyStyles(heroBtn, {
+                backgroundColor: data.hero.buttonBgColor,
+                color: data.hero.buttonTextColor,
+                borderRadius: `${data.hero.buttonBorderRadius}px`
+            });
+            
+            const episodesContainer = document.getElementById('episode-cards-container');
+            document.getElementById('episodes-title').textContent = data.episodes.titleText;
+            applyStyles(document.getElementById('episodes-title'), {
+                color: data.episodes.titleColor,
+                fontFamily: `'${data.episodes.titleFontFamily}', sans-serif`
+            });
+            
+            const episodesBtn = document.getElementById('episodes-view-all-btn');
+            episodesBtn.textContent = data.episodes.buttonText;
+            applyStyles(episodesBtn, {
+                backgroundColor: data.episodes.buttonBgColor,
+                color: data.episodes.buttonTextColor,
+                borderRadius: `${data.episodes.buttonBorderRadius}px`
+            });
+            episodesBtn.style.marginTop = `${data.episodes.buttonMarginTop}px`;
+            
+             episodesContainer.innerHTML = '';
+
+            // ===== INÍCIO DA MUDANÇA =====
+            const episodeCardStyles = [];
+            if (data.episodes.cardHeight && parseInt(data.episodes.cardHeight) > 0) {
+                episodeCardStyles.push(`height: ${data.episodes.cardHeight}px`);
+            }
+            if (data.episodes.cardWidth && parseInt(data.episodes.cardWidth) > 0) {
+                episodeCardStyles.push(`width: ${data.episodes.cardWidth}px`);
+            }
+            const episodeCardStyle = episodeCardStyles.length > 0 ? `style="${episodeCardStyles.join('; ')}"` : '';
+            // ===== FIM DA MUDANÇA =====
+
+            data.videos.forEach(v => {
+                // Adicionamos a variável 'episodeCardStyle' na criação do HTML
+                episodesContainer.innerHTML += data.episodes.detailedCards ?
+                    `<div class="podcast-card" ${episodeCardStyle}><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank"><img src="${v.thumbnail}" alt="${v.title}"></a><div class="podcast-card-content"><h3 style="color:${data.episodes.cardTitleColor};">${v.title}</h3><p>${v.description.substring(0, 100)}...</p><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" class="podcast-card-link" style="color: ${data.episodes.cardLinkColor};">${data.episodes.cardLinkText}</a></div></div>` :
+                    `<div class="podcast-card" ${episodeCardStyle}><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank"><img src="${v.thumbnail}" alt="${v.title}"></a><div class="podcast-card-content"><h3 style="color:${data.episodes.cardTitleColor};">${v.title}</h3><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" class="podcast-card-link" style="color: ${data.episodes.cardLinkColor};">${data.episodes.cardLinkText}</a></div></div>`;
+            });
+            
+            const pdfContainer = document.getElementById('pdf-cards-container');
+            document.getElementById('pdf-download-title').textContent = data.pdf.titleText;
+            applyStyles(document.getElementById('pdf-download-title'), {
+                color: data.pdf.titleColor,
+                fontFamily: `'${data.pdf.titleFontFamily}', sans-serif`
+            });
+            
+            pdfContainer.innerHTML = '';
+            let releasedPdfs = 0;
+            const now = new Date();
+            
+            const styles = [];
+            if (data.pdf.cardMinHeight) {
+                styles.push(`min-height: ${data.pdf.cardMinHeight}px`);
+            }
+            if (data.pdf.cardMinWidth) { 
+                styles.push(`min-width: ${data.pdf.cardMinWidth}px`);
+            }
+            const cardStyle = styles.length > 0 ? `style="${styles.join('; ')}"` : '';
+
+            data.pdfItems.forEach(item => {
+                if (!item.publishDate || !item.publishTime) return;
+                if (new Date(`${item.publishDate}T${item.publishTime}:00${item.publishTimezone}`) <= now) {
+                    const videoId = item.videoUrl.split('v=')[1]?.split('&')[0];
+                    const video = data.videos.find(v => v.id === videoId);
+                    if (video) {
+                        releasedPdfs++;
+                        const buttonsHtml = `<div class="pdf-card-buttons"><a href="${item.videoUrl}" target="_blank" style="background-color:${data.pdf.listenButtonBgColor}; color:${data.pdf.listenButtonTextColor}; border-radius:${data.pdf.buttonBorderRadius}px;">${data.pdf.listenButtonText}</a><a href="${item.pdfUrl}" target="_blank" style="background-color:${data.pdf.pdfButtonBgColor}; color:${data.pdf.pdfButtonTextColor}; border-radius:${data.pdf.buttonBorderRadius}px;">${data.pdf.pdfButtonText}</a></div>`;
+                        
+                        if (data.pdf.cardModel === 'modelo2') {
+                            const contentHtml = `<h3>${video.title}</h3><p>${video.description ? video.description.substring(0, 120) + '...' : ''}</p>`;
+                            pdfContainer.innerHTML += `<div class="podcast-card pdf-card-modelo2" ${cardStyle}><img src="${video.thumbnail}" alt="${video.title}"><div class="podcast-card-content"><div>${contentHtml}</div>${buttonsHtml}</div></div>`;
+                        } else if (data.pdf.cardModel === 'modelo1') {
+                            const contentHtml = `<h3>${video.title}</h3><p>${video.description ? video.description.substring(0, 80) + '...' : ''}</p>`;
+                            pdfContainer.innerHTML += `<div class="podcast-card" ${cardStyle}><img src="${video.thumbnail}" alt="${video.title}"><div class="podcast-card-content"><div class="inner-content-box">${contentHtml}</div>${buttonsHtml}</div></div>`;
+                        } else {
+                            pdfContainer.innerHTML += `<div class="podcast-card" ${cardStyle}><img src="${video.thumbnail}" alt="${video.title}"><div class="podcast-card-content"><h3>${video.title}</h3>${buttonsHtml}</div></div>`;
+                        }
+                    }
+                }
+            });
+            
+            if (releasedPdfs === 0) pdfContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><p>Nenhum material disponível.</p></div>';
+            
+            document.getElementById('about-title').textContent = data.about.titleText;
+            applyStyles(document.getElementById('about-title'), {
+                color: data.about.titleColor,
+                fontFamily: `'${data.about.titleFontFamily}', sans-serif`
+            });
+            
+            const paragraphs = data.about.descriptionText.split("\n\n").filter(p => p.trim() !== '');
+            document.getElementById('about-description').innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+            applyStyles(document.getElementById('about-description'), {
+                color: data.about.descriptionColor,
+                fontFamily: `'${data.about.descriptionFontFamily}', sans-serif`
+            });
+            
+            document.getElementById('about-image').src = data.about.imageUrl || 'https://placehold.co/600x400';
+            
+            document.getElementById('contact-title').textContent = data.contact.titleText;
+            applyStyles(document.getElementById('contact-title'), {
+                color: data.contact.titleColor,
+                fontFamily: `'${data.contact.titleFontFamily}', sans-serif`
+            });
+            
+            document.getElementById('contact-description').textContent = data.contact.descriptionText;
+            applyStyles(document.getElementById('contact-description'), {
+                color: data.contact.descriptionColor,
+                fontFamily: `'${data.contact.descriptionFontFamily}', sans-serif`
+            });
+            
+            applyStyles(document.getElementById('contact-submit-btn'), {
+                backgroundColor: data.contact.buttonBgColor,
+                color: data.contact.buttonTextColor,
+                borderRadius: `${data.contact.buttonBorderRadius}px`
+            });
+            
+            document.getElementById('footer-text').innerHTML = data.footer.text;
+            applyStyles(document.getElementById('footer-text'), {
+                color: data.footer.textColor,
+                fontFamily: `'${data.footer.fontFamily}', sans-serif`
+            });
+            
+        } catch(e) {
+            console.error("Erro ao carregar data.json:", e);
+            document.body.innerHTML = "<h1>Erro ao carregar site. Verifique data.json</h1>";
+        }
+    });</script></body></html>
